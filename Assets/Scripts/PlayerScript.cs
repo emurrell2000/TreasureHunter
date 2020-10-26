@@ -9,12 +9,32 @@ public class PlayerScript : MonoBehaviour
 
     public float speed;
     public Text score;
+    public Text win;
+    public Text lives;
     private int scoreValue = 0;
+    private int livesValue = 3;
+    public LayerMask groundLayer;
+
+    bool IsGrounded()
+    {
+        Vector2 position = transform.position;
+        Vector2 direction = Vector2.down;
+        float distance = 1.0f;
+
+        Debug.DrawRay(position, direction, Color.green);
+        RaycastHit2D hit = Physics2D.Raycast(position, direction, distance, groundLayer);
+        if (hit.collider != null) {
+            return true;
+        }
+        return false;
+    }
     // Start is called before the first frame update
     void Start()
     {
         rd2d = GetComponent<Rigidbody2D>();
-        score.text = scoreValue.ToString();
+        score.text = "Score: " + scoreValue.ToString();
+        score.text = "Lives: " + livesValue.ToString();
+        win.text = "";
     }
 
     // Update is called once per frame
@@ -23,6 +43,10 @@ public class PlayerScript : MonoBehaviour
         if (Input.GetKey("escape"))
         {
             Application.Quit();
+        }
+        int yMovement = (int)Input.GetAxisRaw("Vertical");
+        if (yMovement == 1) {
+            Jump();
         }
     }
     void FixedUpdate()
@@ -36,17 +60,43 @@ public class PlayerScript : MonoBehaviour
        if (collision.collider.tag == "Coin")
         {
             scoreValue += 1;
-            score.text = scoreValue.ToString();
+            score.text = "Score: " + scoreValue.ToString();
             Destroy(collision.collider.gameObject);
+            if (scoreValue == 4)
+            {
+                transform.position = new Vector3(100.0f, 0.0f, 0.0f);
+                livesValue = 3;
+                lives.text = "Lives: " + livesValue.ToString();
+            }
+            if (scoreValue >= 8)
+            {
+                win.text = "You win! By: Erik Murrell";
+            }
+        }
+        if (collision.collider.tag == "Enemy")
+        {
+            livesValue -= 1;
+            lives.text = "Lives: " + livesValue.ToString();
+            Destroy(collision.collider.gameObject);
+            if (livesValue <= 0)
+            {
+                win.text = "You lose! By: Erik Murrell";
+                Destroy(this);
+            }
         }
     }
-    private void OnCollisionStay2D(Collision2D collision)
+
+    void Jump()
     {
-        if (collision.collider.tag == "Ground")
+        if (!IsGrounded())
         {
-            if (Input.GetKey(KeyCode.W))
+            return;
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.W))
             {
-                rd2d.AddForce(new Vector2(0, 3), ForceMode2D.Impulse);
+                rd2d.AddForce(new Vector2(0, 7), ForceMode2D.Impulse);
             }
         }
     }
