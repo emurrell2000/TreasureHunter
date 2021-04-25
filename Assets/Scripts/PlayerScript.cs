@@ -8,11 +8,14 @@ public class PlayerScript : MonoBehaviour
     private Rigidbody2D rd2d;
 
     public float speed;
+    public float maxSpeed;
+    public int jumpHeight;
+    public float xVel;
     public Text score;
     public Text win;
-    public Text lives;
+    // public Text lives;
     private int scoreValue = 0;
-    private int livesValue = 3;
+    // private int livesValue = 3;
     public LayerMask groundLayer;
 
     bool IsGrounded()
@@ -33,7 +36,7 @@ public class PlayerScript : MonoBehaviour
     {
         rd2d = GetComponent<Rigidbody2D>();
         score.text = "Score: " + scoreValue.ToString();
-        score.text = "Lives: " + livesValue.ToString();
+        // score.text = "Lives: " + livesValue.ToString();
         win.text = "";
     }
 
@@ -53,26 +56,48 @@ public class PlayerScript : MonoBehaviour
     {
         float hozMovement = Input.GetAxis("Horizontal");
         float vertMovement = Input.GetAxis("Vertical");
-        rd2d.AddForce(new Vector2(hozMovement * speed, vertMovement * speed));
+        xVel = rd2d.velocity.x;
+        if (xVel >= maxSpeed)
+        {
+            if (hozMovement <= 0)
+            {
+                rd2d.AddForce(new Vector2(hozMovement * speed, 0));
+            }
+        }
+        else if (xVel <= -maxSpeed)
+        {
+            if (hozMovement >= 0)
+            {
+                rd2d.AddForce(new Vector2(hozMovement * speed, 0));
+            }
+        }
+        else
+        {
+            rd2d.AddForce(new Vector2(hozMovement * speed, 0));
+        }
     }
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-       if (collision.collider.tag == "Coin")
+        Collider2D collide = collision.GetComponent<Collider2D>();
+        if (collide.tag == "Coin")
         {
             scoreValue += 1;
             score.text = "Score: " + scoreValue.ToString();
-            Destroy(collision.collider.gameObject);
+            Destroy(collision.gameObject);
+            /*
             if (scoreValue == 4)
             {
                 transform.position = new Vector3(100.0f, 0.0f, 0.0f);
                 livesValue = 3;
                 lives.text = "Lives: " + livesValue.ToString();
             }
-            if (scoreValue >= 8)
+            */
+            if (scoreValue >= 30)
             {
                 win.text = "You win! By: Erik Murrell";
             }
         }
+        /*
         if (collision.collider.tag == "Enemy")
         {
             livesValue -= 1;
@@ -84,6 +109,7 @@ public class PlayerScript : MonoBehaviour
                 Destroy(this);
             }
         }
+        */
     }
 
     void Jump()
@@ -96,7 +122,7 @@ public class PlayerScript : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.W))
             {
-                rd2d.AddForce(new Vector2(0, 7), ForceMode2D.Impulse);
+                rd2d.AddForce(new Vector2(0, jumpHeight), ForceMode2D.Impulse);
             }
         }
     }
